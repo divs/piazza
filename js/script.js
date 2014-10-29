@@ -2,19 +2,18 @@
 
     // pane elements
     var rightPane = document.getElementById('right-pane');
-    // TODO: add other panes here
+    var leftPane = document.getElementById('left-pane');
 
     // button and input elements
-    // TODO: add button/input element selectors here
 
     // script elements that correspond to Handlebars templates
     var questionFormTemplate = document.getElementById('question-form-template');
-    // TODO: add other script elements corresponding to templates here
+    var questionsTemplate = document.getElementById('questions-template');
 
     // compiled Handlebars templates
     var templates = {
-        renderQuestionForm: Handlebars.compile(questionFormTemplate.innerHTML)
-        // TODO: add other Handlebars render functions here
+        renderQuestionForm: Handlebars.compile(questionFormTemplate.innerHTML),
+        renderQuestions: Handlebars.compile(questionsTemplate.innerHTML)
     };
 
     /* Returns the questions stored in localStorage. */
@@ -36,11 +35,29 @@
         localStorage.questions = JSON.stringify(questions);
     }
 
+    function storeAnotherQuestion(question) {
+        var arr = getStoredQuestions();
+        arr.push(question);
+        storeQuestions(arr);
+    }
+    
     // TODO: tasks 1-5 and one extension
 
     // display question form initially
     rightPane.innerHTML = templates.renderQuestionForm();
 
     // TODO: display question list initially (if there are existing questions)
+    var questionForm = document.getElementById('question-form');
+    questionForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        var newQ = {
+            subject : this.subject.value,
+            question : this.question.value
+        }
+        storeQuestions([]);
+        storeAnotherQuestion(newQ);
+    });
+
+    leftPane.innerHTML = templates.renderQuestions({questions: localStorage.questions});
 
 })(this, this.document);
