@@ -5,16 +5,21 @@
     var leftPane = document.getElementById('left-pane');
 
     // button and input elements
+    var interactors = document.getElementById('interactors');
+    var btn = interactors.getElementsByClassName('btn')[0];
 
     // script elements that correspond to Handlebars templates
     var questionFormTemplate = document.getElementById('question-form-template');
     var questionsTemplate = document.getElementById('questions-template');
+    var expandedQuestionTemplate = document.getElementById('expanded-question-template');
 
     // compiled Handlebars templates
     var templates = {
         renderQuestionForm: Handlebars.compile(questionFormTemplate.innerHTML),
-        renderQuestions: Handlebars.compile(questionsTemplate.innerHTML)
+        renderQuestions: Handlebars.compile(questionsTemplate.innerHTML),
+        renderExpandedQuestion: Handlebars.compile(expandedQuestionTemplate.innerHTML)
     };
+
 
     /* Returns the questions stored in localStorage. */
     function getStoredQuestions() {
@@ -40,24 +45,89 @@
         arr.push(question);
         storeQuestions(arr);
     }
-    
-    // TODO: tasks 1-5 and one extension
 
-    // display question form initially
-    rightPane.innerHTML = templates.renderQuestionForm();
+    function refreshQuestionsList() {
+        leftPane.innerHTML = templates.renderQuestions({questions: getStoredQuestions()});
+    }
 
-    // TODO: display question list initially (if there are existing questions)
-    var questionForm = document.getElementById('question-form');
-    questionForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-        var newQ = {
-            subject : this.subject.value,
-            question : this.question.value
+    function storeResponse(questionId, response) {
+        var storedQ = getStoredQuestions();
+        var storedQLen = storedQ.length;
+        var targetIndex;
+        var targetQ;
+        for (var i = 0; i < storedQLen; i++) {
+            if (storedQ[i].id == questionId) {
+                targetIndex = i;
+                targetQ = storedQ[i];
+                storedQ.splice(i, 1);
+            }  
         }
-        storeQuestions([]);
-        storeAnotherQuestion(newQ);
+        targetQ.responses.push(response);
+        storedQ.push(targetQ);
+        storeQuestions(storedQ);
+        return targetQ;
+    }
+
+    function renderExpandedQuestionHelper(questionId) {
+        var storedQ = getStoredQuestions();
+        var storedQLen = storedQ.length;
+        var targetQ;
+        for (var i = 0; i < storedQLen; i++) {
+            if (storedQ[i].id == questionId)
+                targetQ = storedQ[i];
+        }
+        rightPane.innerHTML = templates.renderExpandedQuestion(targetQ);
+        var responseForm = document.getElementById('response-form');
+        responseForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            var newResponse = {
+                name : this.name.value,
+                response : this.response.value
+            };
+            var newQ = storeResponse(questionId, newResponse);
+            alert(JSON.stringify(newResponse));
+            rightPane.innerHTML = templates.renderExpandedQuestion(newQ);
+        });
+    }
+
+    renderQuestionFormHelper();
+
+    btn.addEventListener("click", function(event) {
+        event.preventDefault();
+        renderQuestionFormHelper();
     });
 
-    leftPane.innerHTML = templates.renderQuestions({questions: localStorage.questions});
+    function renderQuestionFormHelper() {
+        rightPane.innerHTML = templates.renderQuestionForm();
+        refreshQuestionsList();
+
+        var questionForm = document.getElementById('question-form');
+        questionForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            var ID = Math.random();
+            var newQ = {
+                id : ID,
+                subject : this.subject.value,
+                question : this.question.value,
+                responses: []
+            };
+            storeAnotherQuestion(newQ);
+            refreshQuestionsList();
+            questionForm.reset();
+            var question = document.getElementById(JSON.stringify(ID));
+
+            question.addEventListener("click", function(e) {
+                renderExpandedQuestionHelper(e.currentTarget.id);
+            });
+        });
+    }
+
+    var clearButton = document.getElementById('resetButton');
+    clearButton.addEventListener("click", function(event) {
+        event.preventDefault();
+        localStorage.clear();
+        refreshQuestionsList();
+    });
+
 
 })(this, this.document);

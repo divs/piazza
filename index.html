@@ -19,6 +19,7 @@
             <div id="navigation">
                 <div id="interactors">
                     <!-- buttons and search -->
+                    <button type="button" id="resetButton"> Clear Questions </button>
                     <a href="#" class="btn">New question form</a>
                     <input type="text" name="search" id="search"
                         placeholder="Search questions..." />
@@ -40,8 +41,6 @@
         <script type="text/x-handlebars-template" id="questions-template">
             {{#if questions}}
                 {{#each questions}}
-                {{! this.id represents this questions identifier in
-                    localStorage. }}
                 <div class="list-question question-info" id="{{ this.id }}">
                     <h3>{{ this.subject }}</h3>
                     <p>{{ this.question }}</p>
